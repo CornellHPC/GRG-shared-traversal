@@ -9,38 +9,60 @@ The core implementation is in [`grgl/`](grgl/), included as a submodule from [Co
 - `grgl/`: core GRG library and batched mutation mapping implementation.
 - `grapp/`: Python command-line workflow for allele polarization using GRGL.
 
-## Cloning
+## Setup
 
-Clone this repository with submodules:
-
-```bash
-git clone --recurse-submodules <artifact-repo-url>
-```
-
-If you already cloned without submodules:
+Initialize the pinned submodules:
 
 ```bash
 git submodule update --init --recursive
 ```
 
-## Code Versions
-
-The submodules pin exact code versions:
-
-```text
-grgl:  0ce2f0bb0ca21c6c675f311765d72d3e92b16519  batch-paper
-grapp: e25244762f0b35157695a8973538feec0ce7880b  polarization
-```
-
-You can verify the checked-out versions with:
+Create one Python environment and install both projects into it. Install GRGL first so GRAPP uses the matching `pygrgl` build:
 
 ```bash
-git submodule status
+python3 -m venv .venv
+source .venv/bin/activate
+
+cd grgl
+python setup.py bdist_wheel
+python -m pip install --force-reinstall dist/*.whl
+cd ..
+
+cd grapp
+python -m pip install .
+cd ..
 ```
 
-## Running
+```
 
-See [`grgl/README.md`](grgl/README.md) for GRGL installation and mutation mapping details. See [`grapp/README.md`](grapp/README.md) for the `grapp polarize` workflow.
+## Polarization Workflow
+
+Polarize a GRG with an ancestral FASTA:
+
+```bash
+grapp polarize <input.grg> <ancestral.fa> -o <polarized.grg>
+```
+
+The FASTA must contain exactly one contig. Positions in the GRG are interpreted against that full ancestral sequence, so do not pass a sliced FASTA whose coordinates have been shifted.
+
+Useful options:
+
+```bash
+grapp polarize <input.grg> <ancestral.fa> \
+  -o <polarized.grg> \
+  --map-batch-size 100 \
+  --jobs 8 \
+  --split-threshold 1000000 \
+  --temp-dir <tmp-dir>
+```
+
+- `--map-batch-size` controls how many flipped mutations are processed per graph traversal; larger values can improve throughput but use more memory.
+- `--jobs` runs split GRG parts in parallel.
+- `--split-threshold` controls the base-pair range size used when splitting.
+- `--temp-dir` stores split GRGs and intermediate polarized parts.
+- `--keep-no-match` keeps mutations that cannot be matched to the ancestral sequence instead of dropping them.
+
+For lower-level GRGL usage, see [`grgl/README.md`](grgl/README.md). For the full GRAPP command reference, see [`grapp/README.md`](grapp/README.md).
 
 ## Citation
 
