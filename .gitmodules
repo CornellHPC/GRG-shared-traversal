@@ -1,0 +1,8 @@
+[submodule "grgl"]
+	path = grgl
+	url = https://github.com/CornellHPC/grgl.git
+	branch = batch-paper
+[submodule "grapp"]
+	path = grapp
+	url = https://github.com/CornellHPC/grapp.git
+	branch = polarization
