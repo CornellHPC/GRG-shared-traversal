@@ -62,7 +62,16 @@ For lower-level GRGL usage, see [`grgl/README.md`](grgl/README.md). For the full
 
 ## Citation
 
-If you use the mutation mapping features, please cite "Cheaper by the Batch: Shared Traversal for Genotype Graph Editing". A preprint describing this work will be available soon (link TBD).
+If you use the mutation mapping features, please cite our preprint "Cheaper by the Batch: Shared Traversal for Genotype Graph Editing": 
+
+```
+@article{li2026graph,
+  title={Cheaper by the Batch: Shared Traversal for Genotype Graph Editing},
+  author={Li, Aaron and Li, Yifan and DeHaas, Drew and Guidi, Giulia},
+  journal={arXiv preprint arXiv:2608.26488},
+  year={2026}
+}
+```
 
 ## Acknowledgments
 
