@@ -8,6 +8,7 @@ The core implementation is in [`grgl/`](grgl/), included as a submodule from [Co
 
 - `grgl/`: core GRG library and batched mutation mapping implementation.
 - `grapp/`: Python command-line workflow for allele polarization using GRGL.
+- `generate_data.py`: simulated GRG and ancestral FASTA generation for polarization experiments.
 
 ## Setup
 
@@ -30,6 +31,52 @@ cd grapp
 python -m pip install .
 cd ..
 ```
+
+## Generate Simulated Data
+
+After completing setup, install the simulation dependencies in the same environment:
+
+```bash
+python -m pip install stdpopsim tskit
+```
+
+Run `generate_data.py` from the repository root, with `stdpopsim` and `grg` available on your `PATH`. This example generates a small dataset using the human `OutOfAfrica_2T12` model and samples from its `EUR` population:
+
+```bash
+python generate_data.py --out data/example \
+  --samples 100 --length 100000 --flip-pct 0.1 --seed 1
+```
+
+Options:
+
+- `--out` is required and selects the output directory.
+- `--samples` is passed to stdpopsim as `EUR:<samples>` (default: `200000`).
+- `--length` sets the simulated sequence length in base pairs (default: `5000000`).
+- `--chromosome` selects a full chromosome, such as `chr22`, and overrides `--length`.
+- `--genetic-map` selects a stdpopsim map, such as `HapMapII_GRCh38`, and requires `--chromosome`.
+- `--flip-pct` is the fraction of eligible sites whose ancestral allele is replaced with the derived allele in `fake.fa`, between 0 and 1 (default: `0.1`, or 10%).
+- `--seed` controls simulation and flipped-site selection (default: `1`).
+- `--work-dir` optionally puts the generated data in `<work-dir>/<out-directory-name>`. Logs and the summary remain under `--out`. Without this option, all files go under `--out`.
+
+For example, to simulate a full chromosome with a genetic map and store large files separately:
+
+```bash
+python generate_data.py --out results/chr22 --work-dir scratch \
+  --samples 100 --chromosome chr22 --genetic-map HapMapII_GRCh38
+```
+
+The generated data includes `sim.trees`, the converted `polarized.grg`, `true.fa` with the simulated ancestral alleles, `fake.fa` with the selected flips, and `flips.tsv` with flipped positions, alleles, and allele counts. FASTAs contain alleles only at eligible polymorphic A/C/G/T sites with one mutation and a positive integer position; other positions are `N`. The script also writes `summary.tsv` with parameters, counts, and file paths, plus command output in `logs/popsim.log` and `logs/convert.log`.
+
+Use the fake ancestral FASTA to introduce polarization errors, then the true FASTA to restore the ancestral orientation:
+
+```bash
+grapp polarize data/example/polarized.grg data/example/fake.fa \
+  -o data/example/depolarized.grg --keep-no-match
+grapp polarize data/example/depolarized.grg data/example/true.fa \
+  -o data/example/repolarized.grg --keep-no-match
+```
+
+`--keep-no-match` retains mutations at positions marked `N` in the generated FASTAs.
 
 ## Polarization Workflow
 
